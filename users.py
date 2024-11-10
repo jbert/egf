@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from typing import Iterator, Optional
 from sqlite3 import connect, OperationalError
 
@@ -34,12 +34,28 @@ def list_users() -> str:
     return "<p>" + "</p><p>".join(s) + "</p>"
 
 
-@app.route("/user/<user_id>")
+@app.route("/user/<user_id>", methods=['GET', 'DELETE'])
+def user_user_id(user_id) -> str:
+    if request.method == "GET":
+        return view_user(user_id)
+    elif request.method == "DELETE":
+        return delete_user(user_id)
+    else:
+        raise RuntimeError(f"Internal error - method is {request.method}")
+
+
 def view_user(user_id) -> str:
     user = db.get_user(user_id)
     if user is None:
         return f"<p>Userid {user_id} not found"
     return "<p>" + str(user) + "</p>"
+
+
+def delete_user(user_id) -> str:
+    # TODO - distinguish "user not found" and "user deleted"
+    # e.g. return bool from db.delete_user
+    db.delete_user(user_id)
+    return f"<p>Userid {user_id} deleted</p>"
 
 
 # Data model to allow us to migrate db and/or ORM without changing application code
@@ -70,6 +86,12 @@ class SqliteDB:
             if len(records) < 1:
                 return None
             return SqliteDB.record_to_user(records[0])
+
+    def delete_user(self, user_id) -> None:
+        with self._con() as con:
+            con.execute(
+                "DELETE FROM users WHERE user_id = ?", [user_id])
+            return None
 
     def _create_schema(self):
         with self._con() as con:

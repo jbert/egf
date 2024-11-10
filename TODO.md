@@ -6,7 +6,7 @@
 - DONE insert by hand
 - DONE list users (GET /user)
 - DONE view user (GET /user/<id>)
-- delete user (DELETE /user)
+- DONE delete user (DELETE /user)
 - create user (POST /user & with attrs, no id, return value same as GET (inc
   id))
 - better HTML
