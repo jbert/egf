@@ -1,6 +1,7 @@
 from flask import Flask, request
 from typing import Iterator, Optional
 from sqlite3 import connect, OperationalError
+import uuid
 
 app = Flask(__name__)
 
@@ -22,16 +23,14 @@ def home_page():
     return f"<p>Why Hello There, {user}</p>"
 
 
-@app.route("/user")
-def list_users() -> str:
-    users = db.list_users()
-    num = 0
-    s = [""]  # Save room for preamble
-    for user in users:
-        num += 1
-        s.append(str(user))
-    s[0] = f"We have {num} users"
-    return "<p>" + "</p><p>".join(s) + "</p>"
+@app.route("/user", methods=["GET", "POST"])
+def user() -> str:
+    if request.method == "GET":
+        return list_users()
+    elif request.method == "POST":
+        return create_user()
+    else:
+        raise RuntimeError(f"Internal error - method is {request.method}")
 
 
 @app.route("/user/<user_id>", methods=['GET', 'DELETE'])
@@ -42,6 +41,24 @@ def user_user_id(user_id) -> str:
         return delete_user(user_id)
     else:
         raise RuntimeError(f"Internal error - method is {request.method}")
+
+
+def create_user() -> str:
+    f = request.form
+    user = User("", f["name"], int(f["age"]), f["favourite_drink"])
+    user_id = db.create_user(user)
+    return f"<p>Created user {user_id}</p>"
+
+
+def list_users() -> str:
+    users = db.list_users()
+    num = 0
+    s = [""]  # Save room for preamble
+    for user in users:
+        num += 1
+        s.append(str(user))
+    s[0] = f"We have {num} users"
+    return "<p>" + "</p><p>".join(s) + "</p>"
 
 
 def view_user(user_id) -> str:
@@ -92,6 +109,14 @@ class SqliteDB:
             con.execute(
                 "DELETE FROM users WHERE user_id = ?", [user_id])
             return None
+
+    def create_user(self, user) -> str:
+        with self._con() as con:
+            user_id = str(uuid.uuid4())
+            params = [user_id, user.name, user.age, user.favourite_drink]
+            con.execute(
+                "INSERT INTO users (user_id, name, age, favourite_drink) VALUES (?, ?, ?, ?)", params)
+            return user_id
 
     def _create_schema(self):
         with self._con() as con:
