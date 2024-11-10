@@ -7,8 +7,8 @@ app = Flask(__name__)
 
 
 class User:
-    def __init__(self, id: str, name: str, age: int, favourite_drink: str):
-        self.id = id
+    def __init__(self, user_id: str, name: str, age: int, favourite_drink: str):
+        self.user_id = user_id
         self.name = name
         self.age = age
         self.favourite_drink = favourite_drink
@@ -56,7 +56,8 @@ def list_users() -> str:
     s = [""]  # Save room for preamble
     for user in users:
         num += 1
-        s.append(str(user))
+        line = f"<a href=/user/{user.user_id}>{user.name}</a>"
+        s.append(line)
     s[0] = f"We have {num} users"
     return "<p>" + "</p><p>".join(s) + "</p>"
 
@@ -65,7 +66,7 @@ def view_user(user_id) -> str:
     user = db.get_user(user_id)
     if user is None:
         return f"<p>Userid {user_id} not found"
-    return "<p>" + str(user) + "</p>"
+    return "<p>" + str(user) + "</p>" + "<a href=\"/user\">List Users</a>"
 
 
 def delete_user(user_id) -> str:
