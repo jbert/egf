@@ -1,0 +1,9 @@
+[project]
+name = "egf"
+version = "0.1.0"
+description = "Example flash application"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0.3",
+]

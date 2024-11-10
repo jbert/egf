@@ -1,0 +1,13 @@
+- DONE define user type
+  - in code
+- add sqlite db
+  - use sqlite3 directly
+- add user schema
+- insert by hand
+- list users (GET /user)
+- view user (GET /user/<id>)
+- delete user (DELETE /user)
+- create user (POST /user & with attrs, no id, return value same as GET (inc
+  id))
+- modify user (PUT /user/<id>, replace all atts)
+- move to using ORM instead of sqlite3 directly
