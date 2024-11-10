@@ -1,5 +1,5 @@
 from flask import Flask
-from typing import Iterator
+from typing import Iterator, Optional
 from sqlite3 import connect, OperationalError
 
 app = Flask(__name__)
@@ -34,8 +34,20 @@ def list_users() -> str:
     return "<p>" + "</p><p>".join(s) + "</p>"
 
 
+@app.route("/user/<user_id>")
+def view_user(user_id) -> str:
+    user = db.get_user(user_id)
+    if user is None:
+        return f"<p>Userid {user_id} not found"
+    return "<p>" + str(user) + "</p>"
+
+
 # Data model to allow us to migrate db and/or ORM without changing application code
 class SqliteDB:
+    @classmethod
+    def record_to_user(cls, record) -> User:
+        return User(record[0], record[1], record[2], record[3])
+
     def __init__(self, fname: str):
         self.fname = fname
         self._create_schema()
@@ -46,15 +58,24 @@ class SqliteDB:
     def list_users(self) -> Iterator[User]:
         with self._con() as con:
             res = con.execute(
-                "SELECT id, name, age, favourite_drink FROM users")
+                "SELECT user_id, name, age, favourite_drink FROM users")
             records = res.fetchall()
-            return map(lambda record: User(record[0], record[1], record[2], record[3]), records)
+            return map(SqliteDB.record_to_user, records)
+
+    def get_user(self, user_id) -> Optional[User]:
+        with self._con() as con:
+            res = con.execute(
+                "SELECT user_id, name, age, favourite_drink FROM users WHERE user_id = ?", [user_id])
+            records = res.fetchall()
+            if len(records) < 1:
+                return None
+            return SqliteDB.record_to_user(records[0])
 
     def _create_schema(self):
         with self._con() as con:
             try:
                 con.execute(
-                    "CREATE TABLE users(id, name, age, favourite_drink)")
+                    "CREATE TABLE users(user_id, name, age, favourite_drink)")
             except OperationalError as e:
                 if "table users already exists" in str(e):
                     app.logger.info(f"Caught exception: {e}")

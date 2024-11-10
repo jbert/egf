@@ -5,10 +5,15 @@
 - DONE add user schema by hand
 - DONE insert by hand
 - DONE list users (GET /user)
-- view user (GET /user/<id>)
+- DONE view user (GET /user/<id>)
 - delete user (DELETE /user)
 - create user (POST /user & with attrs, no id, return value same as GET (inc
   id))
+- better HTML
+  - template lib?
+  - list users just show names with link to user page
+  - add delete button to view user
+  - add nav bar buttons (create, list)
 - modify user (PUT /user/<id>, replace all atts)
 - move to using ORM instead of sqlite3 directly
   - schema in code
